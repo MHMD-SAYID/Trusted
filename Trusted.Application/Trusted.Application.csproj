@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Trusted.Core\Trusted.Core.csproj" />
+    <ProjectReference Include="..\Trusted.Infrastructure\Trusted.Infrastructure.csproj" />
+    <ProjectReference Include="..\Trusted.ViewModel\Trusted.ViewModel.csproj" />
+  </ItemGroup>
+
+</Project>

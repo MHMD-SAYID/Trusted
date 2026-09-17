@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Trusted.API/Trusted.API.csproj" />
+  <Project Path="Trusted.Application/Trusted.Application.csproj" />
+  <Project Path="Trusted.Core/Trusted.Core.csproj" />
+  <Project Path="Trusted.Infrastructure/Trusted.Infrastructure.csproj" />
+  <Project Path="Trusted.ViewModel/Trusted.ViewModel.csproj" />
+</Solution>
