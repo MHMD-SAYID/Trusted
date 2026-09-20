@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Trusted.Core.IServices;
-using Trusted.ViewModel.Auth;
+using Trusted.ViewModel.DTO.Request.Auth;
 
 namespace Trusted.API.Controllers;
 

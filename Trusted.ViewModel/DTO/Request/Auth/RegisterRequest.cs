@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 
-namespace Trusted.ViewModel.Auth;
+namespace Trusted.ViewModel.DTO.Request.Auth;
 
 public class RegisterRequest
 {
@@ -21,4 +22,6 @@ public class RegisterRequest
     [Required]
     [MinLength(8)]
     public string Password { get; set; } = string.Empty;
+    public string IpAddress { get; set; }
+    public string PhoneNumber { get; set; }
 }

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Trusted.ViewModel.Auth;
+namespace Trusted.ViewModel.DTO.Request.Auth;
 
 public class LoginRequest
 {

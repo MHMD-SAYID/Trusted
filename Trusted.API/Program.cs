@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using Trusted.Application;
 using Trusted.Core;
@@ -47,19 +48,32 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    await DatabaseSeeder.SeedAsync(scope.ServiceProvider);
+    var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>()
+        .CreateLogger("Startup");
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await db.Database.MigrateAsync();
+        await DatabaseSeeder.SeedAsync(scope.ServiceProvider);
+    }
+    catch (Exception ex)
+    {
+        // Do not crash the host (MonsterASP 500.30) if DB is briefly unavailable
+        logger.LogError(ex, "Database migrate/seed failed. Check ConnectionStrings:DefaultConnection.");
+    }
 }
 
-// Middleware pipeline
-//if (app.Environment.IsDevelopment())
-//{
-//    app.UseSwagger();
-//    app.UseSwaggerUI();
-//}
-app.UseSwagger();
-app.UseSwaggerUI();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+if(app.Environment.IsProduction())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
-app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -19,4 +19,8 @@
     <ProjectReference Include="..\Trusted.ViewModel\Trusted.ViewModel.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\Logos\" />
+  </ItemGroup>
+
 </Project>

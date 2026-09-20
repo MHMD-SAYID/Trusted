@@ -23,7 +23,6 @@ public class JwtProvider : IJwtProvider
     {
         Claim[] claims = [
                  new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new(JwtRegisteredClaimNames.Email, user.Email!),
                 new(JwtRegisteredClaimNames.PreferredUsername, user.UserName!),
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new(ClaimTypes.Role, string.Join(",", roles))

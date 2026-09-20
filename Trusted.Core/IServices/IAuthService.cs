@@ -1,5 +1,6 @@
 using Trusted.Core.Abstraction;
-using Trusted.ViewModel.Auth;
+using Trusted.ViewModel.DTO.Request.Auth;
+using Trusted.ViewModel.DTO.Response.Auth;
 
 namespace Trusted.Core.IServices;
 

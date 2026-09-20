@@ -15,6 +15,14 @@ public static class DependencyInjection
         var jwtSettings = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
             ?? throw new InvalidOperationException("JWT configuration section is missing.");
 
+        if (string.IsNullOrWhiteSpace(jwtSettings.Key) ||
+            Encoding.UTF8.GetByteCount(jwtSettings.Key) < 32)
+        {
+            throw new InvalidOperationException(
+                "Jwt:Key must be at least 32 characters (256 bits) for HS256. " +
+                "Set a longer key in appsettings / appsettings.Production.json.");
+        }
+
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
 
         // Authentication

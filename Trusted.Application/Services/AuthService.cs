@@ -1,11 +1,15 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using System.Net;
+using System.Text.RegularExpressions;
 using Trusted.Core;
 using Trusted.Core.Abstraction;
 using Trusted.Core.Entities;
 using Trusted.Core.IServices;
 using Trusted.ViewModel;
-using Trusted.ViewModel.Auth;
+using Trusted.ViewModel.DTO.Request.Auth;
+using Trusted.ViewModel.DTO.Response.Auth;
 
 namespace Trusted.Application.Services;
 
@@ -14,7 +18,10 @@ public class AuthService : IAuthService
     private readonly UserManager<User> _userManager;
     private readonly IJwtProvider _jwtProvider;
     private readonly JwtOptions _jwtOptions;
-    
+    private readonly Regex _phoneNumberRegex = new Regex(@"^\+201[0125]\d{8}$");
+    private readonly Regex passwordRegex = new Regex( @"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@#!]).{8,}$"
+);
+
     public AuthService(
         UserManager<User> userManager,
         IJwtProvider jwtProvider,
@@ -43,13 +50,69 @@ public class AuthService : IAuthService
                     IsSuccess = false
                 };
             }
+            var phoneExists = await _userManager.Users
+    .AnyAsync(u => u.PhoneNumber == request.PhoneNumber);
+            if(phoneExists)
+            {
+                return new Result<AuthResponse>()
+                {
+                    ArRes = "يوجد مستخدم بهذا رقم الهاتف بالفعل.",
+                    EnRes = "A user with this phone number already exists.",
+                    StatusCode = 400,
+                    Data = null,
+                    IsSuccess = false
+                };
+            }
+            if (Regex.IsMatch(request.PhoneNumber, _phoneNumberRegex.ToString()) == false)
+            {
+                return new Result<AuthResponse>()
+                {
+                    ArRes = "رقم الهاتف غير صالح.",
+                    EnRes = "Invalid phone number.",
+                    StatusCode = 400,
+                    Data = null,
+                    IsSuccess = false
+                };
+            }
+            if(Regex.IsMatch(request.Password, passwordRegex.ToString()) == false)
+            {
+                return new Result<AuthResponse>()
+                {
+                    ArRes = "كلمة المرور يجب أن تحتوي على حرف كبير وحرف صغير ورقم ورمز خاص على الأقل.",
+                    EnRes = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.",
+                    StatusCode = 400,
+                    Data = null,
+                    IsSuccess = false
+                };
+            }
+            // to be changed => return error and log that the ip address is not valid
+            var ipRegex = new Regex(
+     @"^(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)){3}$"
+ );
+
+            if (!ipRegex.IsMatch(request.IpAddress))
+            {
+                return new Result<AuthResponse>
+                {
+                    ArRes = "عنوان IP غير صالح.",
+                    EnRes = "Invalid IP address.",
+                    StatusCode = 400,
+                    Data = null,
+                    IsSuccess = false
+                };
+            }
 
             var user = new User
             {
                 UserName = request.Email,
                 Email = request.Email,
+                EmailConfirmed = true,
                 FirstName = request.FirstName,
-                LastName = request.LastName
+                LastName = request.LastName,
+                PhoneNumber= request.PhoneNumber,
+                PhoneNumberConfirmed = true,
+                IpAddress = request.IpAddress,
+                IsActive = true
             };
 
             var result = await _userManager.CreateAsync(user, request.Password);
@@ -80,7 +143,7 @@ public class AuthService : IAuthService
                 Token = token,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpiryMinutes),
                 Email = user.Email!,
-                Roles = roles
+                Role = roles.FirstOrDefault() ?? string.Empty
             };
 
             return new Result<AuthResponse>()
@@ -108,49 +171,74 @@ public class AuthService : IAuthService
 
     public async Task<Result<AuthResponse>> LoginAsync(LoginRequest request)
     {
-        var user = await _userManager.FindByEmailAsync(request.Email);
-        if (user is null)
+        try
+        {
+            var user = await _userManager.FindByEmailAsync(request.Email);
+            if (user is null)
+            {
+                return new Result<AuthResponse>()
+                {
+                    IsSuccess = false,
+                    ArRes = "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+                    EnRes = "Invalid email or password.",
+                    StatusCode = 400,
+                    Data = null
+                };
+            }
+            if (user.IsActive == false)
+            {
+                return new Result<AuthResponse>()
+                {
+                    IsSuccess = false,
+                    ArRes = "تم تعطيل حسابك. يرجى الاتصال بالدعم.",
+                    EnRes = "Your account has been disabled. Please contact support.",
+                    StatusCode = 403,
+                    Data = null
+                };
+            }
+            var isPasswordValid = await _userManager.CheckPasswordAsync(user, request.Password);
+            if (!isPasswordValid)
+            {
+                return new Result<AuthResponse>()
+                {
+                    IsSuccess = false,
+                    ArRes = "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+                    EnRes = "Invalid email or password.",
+                    StatusCode = 400,
+                    Data = null
+                };
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var token = _jwtProvider.GenerateToken(user, roles);
+
+            var response = new AuthResponse
+            {
+                Token = token,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpiryMinutes),
+                Email = user.Email!,
+                Role = roles.FirstOrDefault() ?? string.Empty
+            };
+            return new Result<AuthResponse>()
+            {
+                IsSuccess = true,
+                ArRes = "تم تسجيل الدخول بنجاح.",
+                EnRes = "Login successful.",
+                StatusCode = 200,
+                Data = response
+            };
+        }
+        catch (Exception ex)
         {
             return new Result<AuthResponse>()
             {
                 IsSuccess = false,
-                ArRes = "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
-                EnRes = "Invalid email or password.",
-                StatusCode = 400,
-                Data = null
+                ArRes = "حدث خطأ أثناء تسجيل الدخول.",
+                EnRes = "An error occurred during login.",
+                StatusCode = 500,
+                Data = null,
+                Errors = new List<string> { ex.Message, ex.InnerException?.Message ?? "Nothing" }
             };
         }
-
-        var isPasswordValid = await _userManager.CheckPasswordAsync(user, request.Password);
-        if (!isPasswordValid)
-        {
-            return new Result<AuthResponse>()
-            {
-                IsSuccess = false,
-                ArRes = "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
-                EnRes = "Invalid email or password.",
-                StatusCode = 400,
-                Data = null
-            };
-        }
-
-        var roles = await _userManager.GetRolesAsync(user);
-        var token = _jwtProvider.GenerateToken(user, roles);
-
-        var response = new AuthResponse
-        {
-            Token = token,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpiryMinutes),
-            Email = user.Email!,
-            Roles = roles
-        };
-        return new Result<AuthResponse>()
-        {
-            IsSuccess = true,
-            ArRes = "تم تسجيل الدخول بنجاح.",
-            EnRes = "Login successful.",
-            StatusCode = 200,
-            Data = response
-        };
     }
 }
