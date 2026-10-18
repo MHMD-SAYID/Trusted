@@ -8,7 +8,7 @@ namespace Trusted.Core.IServices
 {
     public interface IGameService
     {
-        Task<Result<GamelookupRes>> GetAllAsync();
-        Task<Result<GamelookupRes>> GetPopularAsync();
+        Task<Result<List<GamelookupRes>>> GetAllAsync();
+        Task<Result<List<GamelookupRes>>> GetPopularAsync();
     }
 }
