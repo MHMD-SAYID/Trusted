@@ -11,6 +11,7 @@ namespace Trusted.Core.Entities.Games
         public string ArName { get; set; }
         public string EnName { get; set; }
         public string Logo { get; set; }
+        public bool IsPopular { get; set; }
 
     }
 }

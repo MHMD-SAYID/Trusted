@@ -56,7 +56,7 @@ public class AuthService : IAuthService
             {
                 return new Result<AuthResponse>()
                 {
-                    ArRes = "يوجد مستخدم بهذا رقم الهاتف بالفعل.",
+                    ArRes = "???? ?????? ? ??? ?????",
                     EnRes = "A user with this phone number already exists.",
                     StatusCode = 400,
                     Data = null,
@@ -67,7 +67,7 @@ public class AuthService : IAuthService
             {
                 return new Result<AuthResponse>()
                 {
-                    ArRes = "رقم الهاتف غير صالح.",
+                    ArRes = "??? ?????? ??? ????.",
                     EnRes = "Invalid phone number.",
                     StatusCode = 400,
                     Data = null,
@@ -78,7 +78,7 @@ public class AuthService : IAuthService
             {
                 return new Result<AuthResponse>()
                 {
-                    ArRes = "كلمة المرور يجب أن تحتوي على حرف كبير وحرف صغير ورقم ورمز خاص على الأقل.",
+                    ArRes = "???? ?????? ??? ?? ????? ??? ??? ???? ????? ??? ???? ????? ??? ????? ???? ??? ????.",
                     EnRes = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.",
                     StatusCode = 400,
                     Data = null,
@@ -94,7 +94,7 @@ public class AuthService : IAuthService
             {
                 return new Result<AuthResponse>
                 {
-                    ArRes = "عنوان IP غير صالح.",
+                    ArRes = "????? IP ??? ????.",
                     EnRes = "Invalid IP address.",
                     StatusCode = 400,
                     Data = null,
@@ -122,7 +122,7 @@ public class AuthService : IAuthService
                 var errors = result.Errors.Select(e => e.Description).ToList();
                 return new Result<AuthResponse>
                 {
-                    ArRes = "فشل التسجيل.",
+                    ArRes = "??? ???????.",
                     EnRes = "Registration failed.",
                     StatusCode = 400,
                     Data = null,
@@ -149,7 +149,7 @@ public class AuthService : IAuthService
             return new Result<AuthResponse>()
             {
                 IsSuccess = true,
-                ArRes = "تم التسجيل بنجاح.",
+                ArRes = "?? ??????? ?????",
                 EnRes = "Registration successful.",
                 StatusCode = 200,
                 Data = response
@@ -160,11 +160,11 @@ public class AuthService : IAuthService
             return new Result<AuthResponse>()
             {
                 IsSuccess = false,
-                ArRes = "حدث خطأ أثناء التسجيل.",
-                EnRes = "An error occurred during registration.",
-                StatusCode = 500,
+                ArRes = "????? ?? ??????",
+                EnRes = "Service is down",
                 Data = null,
-                Errors = new List<string> { ex.Message ,ex.InnerException?.Message??"Nothing" }
+                StatusCode = 500,
+                Errors = new List<string> { ex.Message, ex.InnerException?.Message ?? "Nothing" }
             };
         }
     }
@@ -179,7 +179,7 @@ public class AuthService : IAuthService
                 return new Result<AuthResponse>()
                 {
                     IsSuccess = false,
-                    ArRes = "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+                    ArRes = "?????? ?????????? ?? ???? ?????? ??? ?????.",
                     EnRes = "Invalid email or password.",
                     StatusCode = 400,
                     Data = null
@@ -190,7 +190,7 @@ public class AuthService : IAuthService
                 return new Result<AuthResponse>()
                 {
                     IsSuccess = false,
-                    ArRes = "تم تعطيل حسابك. يرجى الاتصال بالدعم.",
+                    ArRes = "?????? ????. ???? ??????? ?? ???????.",
                     EnRes = "Your account has been disabled. Please contact support.",
                     StatusCode = 403,
                     Data = null
@@ -202,7 +202,7 @@ public class AuthService : IAuthService
                 return new Result<AuthResponse>()
                 {
                     IsSuccess = false,
-                    ArRes = "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+                    ArRes = "?????? ?????????? ?? ???? ?????? ??? ?????.",
                     EnRes = "Invalid email or password.",
                     StatusCode = 400,
                     Data = null
@@ -222,7 +222,7 @@ public class AuthService : IAuthService
             return new Result<AuthResponse>()
             {
                 IsSuccess = true,
-                ArRes = "تم تسجيل الدخول بنجاح.",
+                ArRes = "?? ??????? ?????",
                 EnRes = "Login successful.",
                 StatusCode = 200,
                 Data = response
@@ -233,10 +233,10 @@ public class AuthService : IAuthService
             return new Result<AuthResponse>()
             {
                 IsSuccess = false,
-                ArRes = "حدث خطأ أثناء تسجيل الدخول.",
-                EnRes = "An error occurred during login.",
-                StatusCode = 500,
+                ArRes = "????? ?? ??????",
+                EnRes = "Service is down",
                 Data = null,
+                StatusCode = 500,
                 Errors = new List<string> { ex.Message, ex.InnerException?.Message ?? "Nothing" }
             };
         }

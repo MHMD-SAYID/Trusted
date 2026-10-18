@@ -26,6 +26,8 @@ public static class UserSeeding
                 FirstName = "System",
                 LastName = "Admin",
                 EmailConfirmed = true,
+                IpAddress = "127.0.0.1",
+                IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -54,6 +56,8 @@ public static class UserSeeding
                 FirstName = "System",
                 LastName = "Mediator",
                 EmailConfirmed = true,
+                IpAddress = "127.0.0.1",
+                IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
 

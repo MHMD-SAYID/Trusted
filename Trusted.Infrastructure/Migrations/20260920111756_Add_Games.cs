@@ -18,7 +18,8 @@ namespace Trusted.Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ArName = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     EnName = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Logo = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Logo = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsPopular = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {

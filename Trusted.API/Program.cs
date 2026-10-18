@@ -12,6 +12,13 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddCore(builder.Configuration);
 builder.Services.AddApplication();
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+        policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+});
+
 // Controllers
 builder.Services.AddControllers();
 
@@ -50,16 +57,24 @@ using (var scope = app.Services.CreateScope())
 {
     var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>()
         .CreateLogger("Startup");
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
     try
     {
-        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         await db.Database.MigrateAsync();
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Database migrate failed.");
+    }
+
+    try
+    {
         await DatabaseSeeder.SeedAsync(scope.ServiceProvider);
     }
     catch (Exception ex)
     {
-        // Do not crash the host (MonsterASP 500.30) if DB is briefly unavailable
-        logger.LogError(ex, "Database migrate/seed failed. Check ConnectionStrings:DefaultConnection.");
+        logger.LogError(ex, "Database seed failed.");
     }
 }
 
@@ -68,12 +83,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-if(app.Environment.IsProduction())
+if (app.Environment.IsProduction())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+app.UseStaticFiles();
+app.UseCors();
 
 app.UseAuthentication();
 app.UseAuthorization();
