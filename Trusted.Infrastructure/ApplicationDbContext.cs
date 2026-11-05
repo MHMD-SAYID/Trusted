@@ -10,6 +10,8 @@ public class ApplicationDbContext : IdentityDbContext<User, UserRole,long>
     public DbSet<Game> Games { get; set; }
     public DbSet<Account> Accounts { get; set; }
     public DbSet<Image> Images { get; set; }
+    public DbSet<AccountMediator> AccountMediators { get; set; }
+    public DbSet<Deal> Deals { get; set; }
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {

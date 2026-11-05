@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -18,5 +18,7 @@ namespace Trusted.Core.Entities.Games
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public bool Islive { get; set; }
         public bool IsFeatured { get; set; }
+        public ICollection<AccountMediator> AccountMediators { get; set; } = new List<AccountMediator>();
+        public ICollection<Deal> Deals { get; set; } = new List<Deal>();
     }
 }

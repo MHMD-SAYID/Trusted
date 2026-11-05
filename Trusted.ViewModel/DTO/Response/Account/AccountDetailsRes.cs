@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
+using Trusted.ViewModel.DTO.Response.Lookups;
 
 namespace Trusted.ViewModel.DTO.Response.Account
 {
@@ -17,5 +18,11 @@ namespace Trusted.ViewModel.DTO.Response.Account
         public string UserName { get; set; }
         public List<AccountImageRes> ImagesURL { get; set; }
         public bool IsFeatured { get; set; }
+        public ICollection<MediatorRes> Mediators { get; set; }=new List<MediatorRes>();
+    }
+    public class MediatorRes
+    {
+        public long Id { get; set; }
+        public string Name { get; set; }
     }
 }

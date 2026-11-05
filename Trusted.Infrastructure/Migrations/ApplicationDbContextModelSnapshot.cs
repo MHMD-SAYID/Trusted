@@ -168,6 +168,60 @@ namespace Trusted.Infrastructure.Migrations
                     b.ToTable("Accounts");
                 });
 
+            modelBuilder.Entity("Trusted.Core.Entities.Games.AccountMediator", b =>
+                {
+                    b.Property<long>("AccountId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("MediatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("AccountId", "MediatorId");
+
+                    b.HasIndex("MediatorId");
+
+                    b.ToTable("AccountMediators");
+                });
+
+            modelBuilder.Entity("Trusted.Core.Entities.Games.Deal", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AccountId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("BuyerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("SelectedMediatorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("BuyerId");
+
+                    b.HasIndex("SelectedMediatorId");
+
+                    b.ToTable("Deals");
+                });
+
             modelBuilder.Entity("Trusted.Core.Entities.Games.Game", b =>
                 {
                     b.Property<long>("Id")
@@ -425,6 +479,52 @@ namespace Trusted.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Trusted.Core.Entities.Games.AccountMediator", b =>
+                {
+                    b.HasOne("Trusted.Core.Entities.Games.Account", "Account")
+                        .WithMany("AccountMediators")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Trusted.Core.Entities.User", "Mediator")
+                        .WithMany("MediatedAccounts")
+                        .HasForeignKey("MediatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Mediator");
+                });
+
+            modelBuilder.Entity("Trusted.Core.Entities.Games.Deal", b =>
+                {
+                    b.HasOne("Trusted.Core.Entities.Games.Account", "Account")
+                        .WithMany("Deals")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Trusted.Core.Entities.User", "Buyer")
+                        .WithMany("Deals")
+                        .HasForeignKey("BuyerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Trusted.Core.Entities.User", "SelectedMediator")
+                        .WithMany("MediatedDeals")
+                        .HasForeignKey("SelectedMediatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Buyer");
+
+                    b.Navigation("SelectedMediator");
+                });
+
             modelBuilder.Entity("Trusted.Core.Entities.Games.Image", b =>
                 {
                     b.HasOne("Trusted.Core.Entities.Games.Account", "Account")
@@ -438,12 +538,22 @@ namespace Trusted.Infrastructure.Migrations
 
             modelBuilder.Entity("Trusted.Core.Entities.Games.Account", b =>
                 {
+                    b.Navigation("AccountMediators");
+
+                    b.Navigation("Deals");
+
                     b.Navigation("Images");
                 });
 
             modelBuilder.Entity("Trusted.Core.Entities.User", b =>
                 {
                     b.Navigation("Accounts");
+
+                    b.Navigation("Deals");
+
+                    b.Navigation("MediatedAccounts");
+
+                    b.Navigation("MediatedDeals");
                 });
 #pragma warning restore 612, 618
         }
