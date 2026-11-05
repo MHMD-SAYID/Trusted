@@ -15,10 +15,13 @@ public static class DependencyInjection
         services.AddScoped<IGameService, GameService>();
         services.AddScoped<IImageService, ImageService>();
         services.AddScoped<IAccountService, AccountService>();
+        services.AddScoped<ILookupService, LookupService>();
+        services.AddScoped<IDealService, DealService>();
 
         services.AddScoped<IGameRepository, GameRepository>();
         services.AddScoped<IImageRepository, ImageRepository>();
         services.AddScoped<IAccountRepository, AccountRepository>();
+        services.AddScoped<IDealRepository, DealRepository>();
 
 
         return services;
