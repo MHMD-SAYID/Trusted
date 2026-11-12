@@ -12,7 +12,7 @@ using Trusted.ViewModel.DTO.Request.Images;
 
 namespace Trusted.Application.Services
 {
-    public class ImageService:IImageService
+    public class ImageService : IImageService
     {
         private readonly string _imagesPath;
         private readonly IImageRepository _imageRepository;
@@ -140,137 +140,108 @@ namespace Trusted.Application.Services
             };
         }
 
-        private async Task<Image> SaveFile(IFormFile image, long AccountId, bool IsDefault,  CancellationToken cancellationToken = default, string folderName = "")
+        private async Task<string> SavePhysicalFile(IFormFile image, string folderName, long entityId, CancellationToken cancellationToken = default)
         {
             var imageName = string.Concat(Guid.NewGuid(), Path.GetExtension(image.FileName));
 
-            var carFolderPath = Path.Combine(_imagesPath, "Account", AccountId.ToString());
+            var folderPath = Path.Combine(_imagesPath, folderName, entityId.ToString());
 
-            if (!Directory.Exists(carFolderPath))
+            if (!Directory.Exists(folderPath))
             {
-                Directory.CreateDirectory(carFolderPath);
+                Directory.CreateDirectory(folderPath);
             }
 
-            var physicalPath = Path.Combine(carFolderPath, imageName);
-
-            var carImage = new Image
-            {
-                AccountId = AccountId,
-                Path = $"/Images/Account/{AccountId}/{imageName}", // Path stored in DB
-                IsDefault = IsDefault
-            };
+            var physicalPath = Path.Combine(folderPath, imageName);
 
             using var stream = File.Create(physicalPath);
             await image.CopyToAsync(stream, cancellationToken);
 
-            return carImage;
+            return $"/Images/{folderName}/{entityId}/{imageName}";
         }
 
+        private async Task<Image> SaveFile(IFormFile image, long AccountId, bool IsDefault, CancellationToken cancellationToken = default, string folderName = "Account")
+        {
+            var path = await SavePhysicalFile(image, folderName, AccountId, cancellationToken);
 
+            var accountImage = new Image
+            {
+                AccountId = AccountId,
+                Path = path,
+                IsDefault = IsDefault
+            };
 
-        //public async Task<Result<UploadImageRes>> UploadImageAsync(IFormFile image, bool isDefault, int carId, CancellationToken cancellationToken = default)
-        //{
-        //    try
-        //    {
-        //        //Validate extension
+            return accountImage;
+        }
 
-        //        if (!IsAllowedExtension(image))
-        //        {
-        //            return new Result<UploadImageRes>
-        //            {
-        //                IsSuccess = false,
-        //                EnRes = "File extension is not allowed.",
-        //                ArRes = "امتداد الملف غير مسموح به.",
-        //                Data = null,
-        //                StatusCode = 400,
-        //                Errors = new List<string> { "Invalid file extension." }
-        //            };
-        //        }
-        //        //Validate Size
-        //        if (!IsAllowedSize(image))
-        //        {
-        //            return new Result<UploadImageRes>
-        //            {
-        //                IsSuccess = false,
-        //                EnRes = $"File size exceeds the allowed limit of {ImageValidationConstants.MaxFileSizeInMB}MB.",
-        //                ArRes = $"يتجاوز حجم الملف الحد المسموح به وهو {ImageValidationConstants.MaxFileSizeInMB} ميجابايت.",
-        //                Data = null,
-        //                StatusCode = 400,
-        //                Errors = new List<string> { "File is too large." }
-        //            };
-        //        }
-        //        //validate signature
-        //        if (!HasSafeSignature(image))
-        //        {
-        //            return new Result<UploadImageRes>
-        //            {
-        //                IsSuccess = false,
-        //                EnRes = "This file type is blocked for security reasons.",
-        //                ArRes = "تم حظر نوع الملف هذا لأسباب أمنية.",
-        //                Data = null,
-        //                StatusCode = 400,
-        //                Errors = new List<string> { "Blocked file content." }
-        //            };
-        //        }
-        //        if (isDefault == true)
-        //        {
-        //            var existingDefaultImage = await _imageRepository.FindAsync(i => i.IsDefault == true && i.CarId == carId);
+        private async Task<string> SaveUserFile(IFormFile image, long UserId, CancellationToken cancellationToken = default, string folderName = "ProfilePics")
+        {
+            var folderPath = Path.Combine(_imagesPath, folderName, UserId.ToString());
+            if (Directory.Exists(folderPath))
+            {
+                var existingFiles = Directory.GetFiles(folderPath);
+                foreach (var file in existingFiles)
+                {
+                    try { File.Delete(file); } catch { /* ignore */ }
+                }
+            }
 
-        //            if (existingDefaultImage != null)
-        //            {
-        //                existingDefaultImage.IsDefault = false;
-        //                _imageRepository.Update(existingDefaultImage);
-        //                await _imageRepository.CommitAsync();
-        //            }
-        //        }
-        //        var fileName = string.Concat(Guid.NewGuid(), Path.GetExtension(image.FileName));
-        //        var physicalPath = Path.Combine(_imagesPath, fileName);
+            return await SavePhysicalFile(image, folderName, UserId, cancellationToken);
+        }
 
-        //        var directory = Path.GetDirectoryName(physicalPath);
-        //        if (!Directory.Exists(directory))
-        //        {
-        //            Directory.CreateDirectory(directory);
-        //        }
-        //        var carImage = new Image
-        //        {
-        //            CarId = carId,
-        //            // Store a URL-relative path (served from wwwroot) rather than a physical path
-        //            Image = $"Images/{fileName}",
-        //            IsDefault = isDefault,
-        //            RowNumber = await _imageRepository.GetCarImagesCount(carId, cancellationToken) + 1
+        public async Task<Result<string>> UploadProfilePicAsync(IFormFile image, long UserId, CancellationToken cancellationToken = default)
+        {
+            if (!IsAllowedExtension(image))
+            {
+                return new Result<string>
+                {
+                    IsSuccess = false,
+                    EnRes = "File extension is not allowed.",
+                    ArRes = "امتداد الملف غير مسموح به.",
+                    Data = null,
+                    StatusCode = 400,
+                    Errors = new List<string> { "Invalid file extension." }
+                };
+            }
 
-        //        };
+            // Validate Size
+            if (!IsAllowedSize(image))
+            {
+                return new Result<string>
+                {
+                    IsSuccess = false,
+                    EnRes = $"File size exceeds the allowed limit of {ImageValidationConstants.MaxFileSizeInMB}MB.",
+                    ArRes = $"يتجاوز حجم الملف الحد المسموح به وهو {ImageValidationConstants.MaxFileSizeInMB} ميجابايت.",
+                    Data = null,
+                    StatusCode = 400,
+                    Errors = new List<string> { "File is too large." }
+                };
+            }
 
-        //        using var stream = File.Create(physicalPath);
-        //        await image.CopyToAsync(stream, cancellationToken);
+            // Validate signature
+            if (!HasSafeSignature(image))
+            {
+                return new Result<string>
+                {
+                    IsSuccess = false,
+                    EnRes = "This file type is blocked for security reasons.",
+                    ArRes = "تم حظر نوع الملف هذا لأسباب أمنية.",
+                    Data = null,
+                    StatusCode = 400,
+                    Errors = new List<string> { "Blocked file content." }
+                };
+            }
 
-        //        await _imageRepository.AddAsync(carImage);
-        //        await _imageRepository.CommitAsync();
+            var profilePicPath = await SaveUserFile(image, UserId, cancellationToken, "ProfilePics");
 
-        //        return new Result<UploadImageRes>
-        //        {
-        //            IsSuccess = true,
-        //            EnRes = "Image uploaded successfully",
-        //            ArRes = "تم تحميل الصوره بنجاح",
-        //            Data = new UploadImageRes { Id = carImage.CarId },
-        //            Code = 200,
-        //            Errors = null
-        //        };
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new Result<UploadImageRes>
-        //        {
-        //            IsSuccess = false,
-        //            EnRes = "Service is down.",
-        //            ArRes = "لم يتم الوصول للخدمه",
-        //            Data = null,
-        //            Code = 400,
-        //            Errors = new List<string> { ex.Message, ex.StackTrace }
-        //        };
-        //    }
-        //}
-
+            return new Result<string>
+            {
+                IsSuccess = true,
+                StatusCode = 200,
+                ArRes = "تم رفع الصورة بنجاح",
+                EnRes = "Image uploaded successfully",
+                Data = profilePicPath
+            };
+        }
     }
 }
 
