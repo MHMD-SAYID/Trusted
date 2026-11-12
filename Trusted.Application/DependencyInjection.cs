@@ -17,6 +17,7 @@ public static class DependencyInjection
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<ILookupService, LookupService>();
         services.AddScoped<IDealService, DealService>();
+        services.AddScoped<IUserService, UserService>();
 
         services.AddScoped<IGameRepository, GameRepository>();
         services.AddScoped<IImageRepository, ImageRepository>();

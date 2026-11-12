@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Trusted.Core.Abstraction;
@@ -9,5 +10,7 @@ namespace Trusted.Core.IServices
     public interface IImageService
     {
         Task<Result<bool>> UploadManyAsync(List<UploadAccountImagesReq> images, long AccountId, CancellationToken cancellationToken = default);
+        Task<Result<string>> UploadProfilePicAsync(IFormFile image, long UserId, CancellationToken cancellationToken = default);
+        
     }
 }
